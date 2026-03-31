@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chai & Neko Task Tracker v3 🐾</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base Cute Aesthetic */
+        body {
+            background-color: #FFF0F5; 
+            background-image: radial-gradient(#FFD1DC 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: 'Quicksand', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #5A4A42;
+            overflow: hidden; /* Keeps the side character within view */
+        }
+
+        /* Outer Wrapper: App + Side Character */
+        .outer-wrapper {
+            display: flex;
+            align-items: flex-end; /* Character leans against the app base */
+            gap: 20px;
+            position: relative;
+        }
+
+        /* High-End Glassmorphism App Card */
+        .app-container {
+            background-color: rgba(255, 255, 255, 0.85); /* Highly translucent for Glass look */
+            border-radius: 25px;
+            width: 500px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(255, 182, 193, 0.5);
+            position: relative;
+            overflow: hidden;
+            border: 3px solid #FFE4E1;
+            backdrop-filter: blur(10px); /* Core Glassmorphism effect */
+            transition: transform 0.3s ease-out;
+        }
+
+        /* Add dynamic entrance animation to the app itself on load */
+        @keyframes appEntrance {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .app-container {
+            animation: appEntrance 0.6s ease-out forwards;
+        }
+
+        /* The Faint "Chai & Neko" Watermark */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 140px;
+            opacity: 0.05; /* Super faint */
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+        }
+
+        /* Content Area above the watermark */
+        .content {
+            padding: 25px;
+            position: relative;
+            z-index: 1; 
+            overflow-y: auto;
+        }
+
+        /* NEW: Character placeholders in code (Described fully in the screenshot) */
+        /* Placeholder for #top-sim (Tired/Blinking/Yawning inside the app) */
+        .top-sim-container {
+            width: 100%;
+            height: 50px; /* Space for the character above inputs */
+            display:flexbox;
+            justify-content: center;
+            margin-bottom: 35px;
+            position:relative;
+        }
+        #top-sim {
+            width: 50px; height: 50px; 
+            background: rgba(255, 219, 172, 0.5); /* Temporary skin-tone placeholder for visual generation */
+            border-radius: 50%;
+            /* Portrayed visually in screenshot: reference image_8c9c23.jpg, caught mid-blink and yawn */
+        }
+
+        /* Placeholder for #side-sim (Standing/Leaning/Fixing Blanket beside the app) */
+        .side-sim-container {
+            width: 80px;
+            height: 180px; 
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        #side-sim {
+            width: 60px; height: 160px;
+            background: rgba(255, 240, 0, 0.5); /* Temporary onesie-tone placeholder for visual generation */
+            border-radius: 20px;
+            /* Portrayed visually in screenshot: reference image_8c9cbe.png, leaning, blanket visibly sliding, hand raised fixing it */
+        }
+
+        /* Define new 'Desirable Animations' classes in CSS */
+        @keyframes taskFadeIn {
+            from { opacity: 0; transform: translateY(-10px); background-color: #FFFACD; /* Soft yellow glow */ }
+            to { opacity: 1; transform: translateY(0); background-color: rgba(250, 250, 250, 0.8); }
+        }
+        .task-row {
+            animation: taskFadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes sparkExpand {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .action-btn:hover {
+            animation: sparkExpand 0.3s ease-in-out;
+        }
+
+        /* Input Area with Glass look */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #FFE4E1;
+            border-radius: 15px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s, background-color 0.3s;
+            color: #5A4A42;
+            background: rgba(255, 255, 255, 0.6); /* Glass input background */
+        }
+
+        input[type="text"]:focus {
+            border-color: #FFB7B2;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Boba Buttons */
+        .btn {
+            background-color: #E2F0CB; 
+            color: #5A4A42;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 0 #CDE4A7;
+        }
+
+        .btn:hover { background-color: #D6EAA3; transform: translateY(-2px); box-shadow: 0 6px 0 #CDE4A7; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 0 0 #CDE4A7; }
+
+        .btn-clear {
+            background-color: #FFDAC1;
+            box-shadow: 0 4px 0 #F5C6A5;
+            font-size: 12px;
+            padding: 6px 12px;
+            margin-left: auto;
+        }
+        .btn-clear:hover { background-color: #F5C6A5; box-shadow: 0 6px 0 #F5C6A5;}
+
+        /* Section Headers */
+        h3 {
+            color: #D48B91;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+        }
+
+        /* Tables Setup with Glass panels */
+        .table-container {
+            margin-bottom: 20px;
+            border-radius: 15px;
+            border: 2px solid #FFE4E1;
+            background: rgba(250, 250, 250, 0.6); /* Translucent table panels */
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            transition: background-color 0.3s;
+        }
+        
+        .table-container:hover {
+            background: rgba(250, 250, 250, 0.8);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px dashed #FFE4E1;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        /* Sequential Serial Number Styling (Maintaining Core Request) */
+        .serial-col {
+            color: #FFB7B2;
+            font-weight: 700;
+            text-align: center;
+            width: 15%;
+        }
+
+        .completed-task {
+            text-decoration: line-through;
+            color: #A9A9A9;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #FFDAC1; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="outer-wrapper">
+        
+        <div class="app-container">
+            <div class="watermark">🍵🐈</div>
+            
+            <div class="content">
+                
+                <div class="top-sim-container">
+                    <div id="top-sim">
+                        <img  src="Hello_KittyTask manager.jpg" style="height: 80px; object-fit: contain;">
+                        <!--<img id="top-sim" src="Multi-Tasking.gif" style="height: 80px; object-fit: contain;">-->
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="taskInput" placeholder="Add a new task, meow! 🐾">
+                    <button class="btn" onclick="addTask()">Add</button>
+                </div>
+                
+                <h3>Active Tasks</h3>
+                <div class="table-container">
+                    <table id="activeTable">
+                        <tbody id="activeList">
+                            </tbody>
+                    </table>
+                </div>
+
+                <h3 style="margin-top: 30px;">
+                    Completed History 
+                    <button class="btn btn-clear" onclick="clearHistory()">Clear</button>
+                </h3>
+                <div class="table-container" style="opacity: 0.8;">
+                    <table id="completedTable">
+                        <tbody id="completedList">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="side-sim-container">
+            <div id="side-sim">
+                </div>
+        </div>
+
+    </div>
+
+    <script>
+        let activeTasks = [];
+        let completedTasks = [];
+
+        // Renders the Active Tasks Table
+        function renderActiveTable() {
+            const tbody = document.getElementById('activeList');
+            tbody.innerHTML = ''; 
+
+            if(activeTasks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #D48B91; border-bottom: none;">No active tasks! Time for a nap. 💤</td></tr>';
+                return;
+            }
+
+            activeTasks.forEach((task, index) => {
+                const tr = document.createElement('tr');
+                tr.classList.add('task-row'); // Cute slide-in animation
+                
+                // Generating Sequential Serial Numbers dynamically (1, 2, 3...)
+                const serialNumber = index + 1;
+
+                tr.innerHTML = `
+                    <td class="serial-col">${serialNumber}.</td>
+                    <td style="width: 70%;">${task}</td>
+                    <td style="width: 15%; text-align: center;">
+                        <button class="action-btn" title="Complete Task" onclick="completeTask(${index})">Completed✨</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Renders the Completed Tasks Table
+        function renderCompletedTable() {
+            const tbody = document.getElementById('completedList');
+            tbody.innerHTML = ''; 
+
+            if(completedTasks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; color: #D48B91; border-bottom: none;">History is clean! ✨</td></tr>';
+                return;
+            }
+
+            completedTasks.forEach((task, index) => {
+                const tr = document.createElement('tr');
+                tr.classList.add('task-row'); // Gentle fade animation on addition
+                
+                // Generating Sequential Serial Numbers dynamically (1, 2, 3...)
+                const serialNumber = index + 1;
+
+                tr.innerHTML = `
+                    <td class="serial-col">${serialNumber}.</td>
+                    <td class="completed-task" style="width: 85%;">${task}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Add a new task to the active list
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const taskText = input.value.trim();
+
+            if (taskText !== "") {
+                activeTasks.push(taskText);
+                input.value = ""; 
+                renderActiveTable(); 
+            }
+        }
+
+        // Move a task from active to completed with transition
+        function completeTask(index) {
+            // Portraying desirable animation: The task "dissolves" or expands smoothly as it moves
+            const task = activeTasks.splice(index, 1); 
+            completedTasks.push(task); 
+            
+            renderActiveTable(); 
+            
+            // Introduce a subtle lag to Completed Table render to portray the smooth "expand into history" animation effect visually
+            setTimeout(() => {
+                renderCompletedTable(); 
+            }, 200);
+        }
+
+        // Wipe the completed history array with 'desirable' cute fade-out effect
+        function clearHistory() {
+            // Portraying visual dissolve animation of the list in screenshot
+            const historyTable = document.getElementById('completedTable').closest('.table-container');
+            historyTable.style.transition = 'opacity 0.3s, transform 0.3s';
+            historyTable.style.opacity = '0';
+            historyTable.style.transform = 'scale(0.95)';
+
+            setTimeout(() => {
+                completedTasks = [];
+                renderCompletedTable();
+                
+                // Restore container visibility
+                historyTable.style.opacity = '0.8';
+                historyTable.style.transform = 'scale(1)';
+            }, 300);
+        }
+
+        // Enter key support
+        document.getElementById("taskInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                addTask();
+            }
+        });
+
+        // Initial render so the empty messages show up immediately
+        renderActiveTable();
+        renderCompletedTable();
+    </script>
+</body>
+</html>
